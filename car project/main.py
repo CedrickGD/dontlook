@@ -26,8 +26,6 @@ with open("storage.json", "r") as file:
 
     @app.post("/add_car")
     def add_car(car: Car):
-        print("UWU")
-        print(car)
         new_car = {
             "id": str(uuid4()),
             "name": car.name,
