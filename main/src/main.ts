@@ -8,14 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     end: Date;
   };
 
-  let carData: CarInfo[] = [
-  //  { id: uuid.v4(), name: 'H-CN101', start: new Date('2023-1-14'), end: new Date('2023-10-15') },
-  //  { id: uuid.v4(), name: 'H-CN102', start: new Date('2023-3-14'), end: new Date('2023-9-15') },
-    //{ id: uuid.v4(), name: 'H-CN103', start: new Date('2023-4-14'), end: new Date('2023-8-15') },
-    //{ id: uuid.v4(), name: 'H-CN104', start: new Date('2023-2-14'), end: new Date('2023-12-15') },
-    //{ id: uuid.v4(), name: 'H-CN105', start: new Date('2023-7-14'), end: new Date('2023-9-18') },
-    //{ id: uuid.v4(), name: 'H-CN106', start: new Date('2023-5-14'), end: new Date('2023-10-17') },
-  ];
+  let carData: CarInfo[] = [];
 
   function createTableElement(elementType: string): HTMLElement {
     return document.createElement(elementType);
@@ -55,13 +48,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function createDataRow(car: CarInfo, tbody: HTMLTableSectionElement) {
     const row = tbody.insertRow();
-    
+  
     const startMonth = new Date(car.start).getMonth() + 1;
     const endMonth = new Date(car.end).getMonth() + 1;
-
-    for (let j = 0; j < 13; j++) {
+  
+    for (let j = 0; j < 14; j++) {
       const cell = row.insertCell(j);
-
+  
       if (j === 0) {
         cell.innerText = car.name;
       } else if (j === startMonth || j === endMonth) {
@@ -69,8 +62,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else if (j > startMonth && j < endMonth) {
         cell.style.backgroundColor = '#03fccf';
       }
+
+      if (j === 13) {
+        const deleteButton = createDeleteButton(car.name);
+        cell.appendChild(deleteButton);
+      }
     }
   }
+  
 
   function createHTMLTable(data: CarInfo[]) {
     const table = createTableElement('table') as HTMLTableElement;
@@ -147,6 +146,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await addCar(newCar);
       await fetchCars()
     });
+
     
 
     const existingForm = document.querySelector('form');
@@ -157,6 +157,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+
+  function createDeleteButton(name: string): HTMLButtonElement {
+    const deleteButton = createTableElement('button') as HTMLButtonElement;
+    deleteButton.innerText = 'X';
+    deleteButton.addEventListener('click', async () => {
+      await deleteCar(name);
+      await fetchCars();
+    });
+    return deleteButton;
+  }
+
+  async function deleteCar(name: string) {
+    await fetch(`http://127.0.0.1:8000/delete_car/${name}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log(data);
+            createCalendar();
+        })
+        .catch((error) => {
+            console.error(`Error deleting car ${name}:`, error);
+        });
+}
 
   async function addCar(car: CarInfo) {
     await fetch(`http://127.0.0.1:8000/add_car`,
